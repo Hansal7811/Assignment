@@ -1,0 +1,99 @@
+@page "/todoapps"
+<h3>Todo Tasks: (@todos.Count(todo => !todo.TaskProgress))</h3>
+
+<div>
+    <label>Task Categories</label>
+    <select @bind="filterOption">
+        <option value="All">All Tasks</option>
+        <option value="Done">Completed Tasks</option>
+        <option value="Incomplete">Incomplete Tasks</option>
+    </select>
+</div>
+
+<input placeholder="Something todo" @bind="newTodo" />
+<input type="date" @bind="dueDate" />
+<button @onclick="AddTodo">Add new todo</button>
+<p></p>
+<ul>
+    @foreach (var todo in filteredTodos)
+    {
+        <li>
+            <input type="checkbox" @bind="todo.TaskProgress" />
+            @todo.ToDoTasks
+            <span><br />Due Date: @todo.DueDate.ToString("dd/MM/yyyy")</span>
+            <button @onclick="(e) => AddDescription(todo)">Add Description</button>
+            @if (todo.Description != null)
+            {
+                <span><br />Description:</span>
+
+                <ul>
+                    @foreach (var itemDescription in todo.Description)
+                    {
+                        <li>
+                            @itemDescription
+                        </li>
+                        break;
+                    }
+                </ul>
+            }
+        </li>
+    }
+</ul>
+
+@code {
+
+    private List<TodoItems> todos = new();
+    private string newTodo;
+    private DateTime dueDate;
+    private string filterOption = "All";
+
+    private void AddTodo()
+    {
+        if (!string.IsNullOrWhiteSpace(newTodo))
+        {
+            todos.Add(new TodoItems { ToDoTasks = newTodo, DueDate = dueDate });
+            newTodo = string.Empty;
+        }
+    }
+
+    private void AddDescription(TodoItems currentTodo)
+    {
+        if (!string.IsNullOrWhiteSpace(newTodo))
+        {
+            if (currentTodo.Description == null)
+            {
+                currentTodo.Description = new List<string>();
+            }
+            currentTodo.Description.Add(newTodo);
+            newTodo = string.Empty;
+        }
+    }
+
+    public class TodoItems
+    {
+        public string ToDoTasks { get; set; }
+        public bool TaskProgress { get; set; }
+        public List<string> Description { get; set; }
+        public DateTime DueDate { get; set; }
+    }
+
+    // Computed property to filter the todos based on the selected option
+    private List<TodoItems> filteredTodos
+    {
+        get
+        {
+            if (filterOption == "Done")
+            {
+                return todos.Where(todo => todo.TaskProgress).ToList();
+            }
+            else if (filterOption == "Incomplete")
+            {
+                return todos.Where(todo => !todo.TaskProgress).ToList();
+            }
+            else // "All" option
+            {
+                return todos;
+            }
+        }
+    }
+}
